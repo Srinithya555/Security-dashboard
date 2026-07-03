@@ -1,0 +1,49 @@
+{
+  "awsReport": {
+    "risk_score": 100,
+    "finding_count": 3,
+    "findings": [
+      {
+        "rule_id": "IAM-001", "resource_type": "iam_policy", "resource_id": "LegacyFullAdminPolicy",
+        "severity": "CRITICAL", "title": "Policy grants full administrative access (Action:* Resource:*)",
+        "description": "Policy 'LegacyFullAdminPolicy' attached to ['deploy-bot'] allows every action on every resource.",
+        "remediation": "Scope the policy to specific actions and resource ARNs following least privilege.",
+        "cis_reference": "CIS AWS Foundations Benchmark 1.16-equivalent (verify version)"
+      },
+      {
+        "rule_id": "SG-001", "resource_type": "security_group", "resource_id": "sg-0abc111ssh",
+        "severity": "CRITICAL", "title": "SSH (port 22) open to the entire internet",
+        "description": "Security group 'sg-0abc111ssh' allows SSH from 0.0.0.0/0.",
+        "remediation": "Restrict SSH access to specific known IP ranges.",
+        "cis_reference": "CIS AWS Foundations Benchmark 5.2-equivalent (verify version)"
+      },
+      {
+        "rule_id": "S3-003", "resource_type": "s3_bucket", "resource_id": "public-website-assets",
+        "severity": "HIGH", "title": "S3 Block Public Access not fully enabled",
+        "description": "Bucket 'public-website-assets' has Block Public Access settings disabled.",
+        "remediation": "Enable all four Block Public Access settings.",
+        "cis_reference": "CIS AWS Foundations Benchmark 2.1.5-equivalent (verify version)"
+      }
+    ]
+  },
+  "jwtReport": {
+    "findings": [
+      {
+        "severity": "CRITICAL",
+        "title": "Weak HMAC secret guessed",
+        "detail": "Signature verified successfully using secret: 'secret'. Anyone with this secret can forge arbitrary valid tokens."
+      },
+      {
+        "severity": "HIGH",
+        "title": "Missing 'exp' (expiration) claim",
+        "detail": "Tokens without an expiration are valid forever once issued."
+      }
+    ]
+  },
+  "rbacAuditLog": [
+    { "timestamp": "2026-06-28T09:14:00Z", "user_id": "contractor-bob", "resource": "financial_report", "action": "export", "allow": false, "violations": ["export requires 'finance' role"] },
+    { "timestamp": "2026-06-28T14:02:00Z", "user_id": "alice", "resource": "orders", "action": "read", "allow": true, "violations": [] },
+    { "timestamp": "2026-06-29T02:11:00Z", "user_id": "svc-finance-export", "resource": "financial_report", "action": "export", "allow": false, "violations": ["financial report export restricted to 09:00-18:00 UTC"] },
+    { "timestamp": "2026-06-30T11:45:00Z", "user_id": "contractor-bob", "resource": "financial_report", "action": "export", "allow": false, "violations": ["export requires 'finance' role"] }
+  ]
+}
