@@ -18,9 +18,9 @@ ES, a SOC's internal tooling, DefectDojo) exist to solve.
 React dependency — every normalization/scoring/filtering function is
 plain JavaScript, testable by running Node directly with no build step
 (`node tests/aggregate.test.mjs`). This mirrors the same separation used
-in the other two projects in this series (`cspm/engine.py` never touches
-boto3, `reference_engine.py` never touches OPA): keep the actual logic
-testable in isolation from whatever framework or SDK surrounds it.
+in my other projects (`cspm/engine.py` never touches boto3,
+`reference_engine.py` never touches OPA): keep the actual logic testable
+in isolation from whatever framework or SDK surrounds it.
 
 **Risk scoring is consistent across tools.** The severity weights here
 (`CRITICAL: 40, HIGH: 20, MEDIUM: 10, LOW: 5, INFO: 1`) are identical to
@@ -90,39 +90,47 @@ JSON output formats from `aws-cspm-scanner/scripts/run_scan.py --json`,
 `rbac-abac-policy-engine/service/audit_logger.py`'s JSON-Lines format,
 respectively.
 
+## Screenshots
+
+### Full dashboard
+![Dashboard overview](screenshots/dashboard.png)
+The full dashboard running at `localhost:5173` — risk gauge (100/100,
+critical), tools reporting in (AWS CSPM, JWT Scanner, RBAC Audit each
+with their own score), severity distribution bar, and the combined
+findings table across all three sources.
+
+### Filtered findings table
+![Filtered findings](screenshots/filter.png)
+The findings table filtered to a single source (AWS CSPM), showing the
+3 findings from that tool in isolation — full-admin IAM policy, SSH open
+to the world, and S3 Block Public Access disabled.
+
+### Test suite
+![Tests passing](screenshots/tests_passing.png)
+`npm test` — all 31 tests passing, covering every normalization function,
+risk scoring, severity counting, and filter combination logic.
+
 ## Testing status
 
-This one has an unusual testing story worth explaining:
+- ✅ **Full build verified end to end**: `npm install && npm run dev`
+  runs cleanly and the dashboard renders correctly in the browser at
+  `localhost:5173` — risk gauge, tools breakdown, severity distribution,
+  and the findings table with working filters, all confirmed visually.
+- ✅ All 31 `aggregate.js` unit tests pass via `npm test`.
+- ✅ Filtering by source (e.g. isolating just AWS CSPM findings) works
+  correctly, showing only the 3 findings from that source with the
+  count updating accordingly.
 
-- ✅ **Verified with server-side rendering, not just eyeballing the code**:
-  I used React's `react-dom/server` (`renderToStaticMarkup`) to actually
-  render the full `<App />` component tree without a browser or a dev
-  server running. This confirmed: the JSX compiles correctly, every
-  import resolves, the component tree renders without crashing, the risk
-  score computes and displays correctly (100, matching the expected
-  capped sum of the sample data's findings), and the findings table shows
-  the correct count (8: 3 AWS + 2 JWT + 3 denied RBAC decisions, correctly
-  excluding the 1 allowed decision from the sample audit log).
-- ✅ **Verified**: all 31 `aggregate.js` unit tests, run directly with
-  Node, no framework needed.
-- ⚠️ **Still needs**: an actual `npm install && npm run dev` pass — the
-  component logic is proven correct via server-side rendering (the harder
-  part to get right), but the specific dependency versions in
-  `package.json` haven't been installed and built together end-to-end
-  yet. If `npm install` surfaces a version conflict, that's a much easier
-  fix than a logic bug would be.
-
-## Known limitations
+## Limitations
 
 - Sample data is static; there's no live polling/websocket setup for a
   truly "real-time" dashboard — a natural next step would be a small
   backend that periodically re-runs the three scanners and serves fresh
   JSON.
 - No persistence/history — the dashboard shows current findings, not a
-  trend line over time. Pairing this with the storage patterns used
-  elsewhere (or a simple time-series backend) would let you show "risk
-  score over the last 30 days," which is often more interesting to a
-  reviewer than a single snapshot.
+  trend line over time. Pairing this with a simple time-series backend
+  would let you show "risk score over the last 30 days," which is often
+  more interesting to a reviewer than a single snapshot.
 - No auth — this is a portfolio demo; a real internal security dashboard
   would sit behind SSO.
 
